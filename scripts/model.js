@@ -55,6 +55,8 @@ export function sameBlock(r1, c1, r2, c2) {
 /** Read the value at (row, col): a digit 1-9, or EMPTY (-1). */
 export function getCell(board, row, col) {
   // TODO: return the value stored at board[row][col]
+  // board is an array of rows, so row grabs a row and col picks a cell from it
+    return board[row][col]
 }
 
 /**
@@ -65,6 +67,14 @@ export function getCell(board, row, col) {
  */
 export function setCell(board, row, col, value) {
   // TODO: return a new 9x9 board with exactly one cell changed
+  //builds a brand new board, asks am i changing this row
+  //no copies rowcells
+  //yes target column gets value everything else is copied
+   return board.map((rowCells, r) =>
+      r === row
+        ? rowCells.map((cell, c) => (c === col ? value : cell))
+        : [...rowCells]
+    )
 }
 
 /**
@@ -77,11 +87,42 @@ export function setCell(board, row, col, value) {
  */
 export function findConflicts(board, row, col) {
   // TODO: return an array of [row, col] pairs that conflict with (row, col)
+  //looks at every cell
+  //keeps the ones that hold the same digit
+  //share a row, column, or 3×3 block with the target
+  const target = board[row][col]
+    const conflicts = []
+    if (target === EMPTY) return conflicts
+
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (r === row && c === col) continue
+        if (board[r][c] !== target) continue
+        if (
+          sameRow(row, col, r, c) ||
+          sameColumn(row, col, r, c) ||
+          sameBlock(row, col, r, c)
+        ) {
+          conflicts.push([r, c])
+        }
+      }
+    }
+    return conflicts
 }
 
 /** True when every cell is filled (no EMPTY) and nothing conflicts. */
 export function isComplete(board) {
   // TODO: false if any cell is EMPTY or has conflicts; otherwise true
+  // checks every cell, If empty or conflict, returns false
+  // goes through 81 cells no problem, returns true.
+  for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (board[r][c] === EMPTY) return false
+        if (findConflicts(board, r, c).length > 0) return false
+      }
+    }
+    return true
+
 }
 
 // ---------------------------------------------------------------------
@@ -93,15 +134,27 @@ export function isComplete(board) {
 export function formatDuration(durationSeconds) {
   // TODO: whole minutes, then zero-padded seconds.
   // Hint: String(n).padStart(2, '0')
+  //converts a number of seconds into m:ss.
+  const minutes = Math.floor(durationSeconds / 60)
+    const seconds = durationSeconds % 60
+    return `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
 /** Format a Date as "YYYY/MM/DD" (e.g. "2021/03/02"). */
 export function formatDate(date) {
   // TODO: getFullYear(), getMonth() + 1, getDate() - month/day zero-padded
+  //pulls the year, month, day from Date and makes YYYY/MM/DD
+  const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}/${month}/${day}`
+
 }
 
 /** A NEW array of scores sorted fastest-first, without mutating the input. */
 export function sortScores(scores) {
   // TODO: copy the array, then sort by durationSeconds ascending.
   // Hint: [...scores] makes a copy so the original is left untouched.
+  //copies array, then sorts the copy so the smallest durationSeconds comes first.
+  return [...scores].sort((a, b) => a.durationSeconds - b.durationSeconds)
 }
